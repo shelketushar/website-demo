@@ -7,7 +7,10 @@ metadata:
   # annotations:
   #   github.com/project-slug: backstage/backstage
   #   backstage.io/techdocs-ref: dir:.
+  annotations:
+    # This also supports bitbucket/xxx/yyy
+    circleci.com/project-slug: github/shelketushar/react-web-app
 spec:
-  type: website
+  type: service
   owner: john@example.com
   lifecycle: experimental

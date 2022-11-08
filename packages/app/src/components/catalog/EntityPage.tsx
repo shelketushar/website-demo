@@ -27,10 +27,6 @@ import {
   isOrphan,
 } from '@backstage/plugin-catalog';
 import {
-  isGithubActionsAvailable,
-  EntityGithubActionsContent,
-} from '@backstage/plugin-github-actions';
-import {
   EntityUserProfileCard,
   EntityGroupProfileCard,
   EntityMembersListCard,
@@ -52,10 +48,28 @@ import {
   RELATION_PART_OF,
   RELATION_PROVIDES_API,
 } from '@backstage/catalog-model';
+import {
+  EntityGithubActionsContent,
+  EntityRecentGithubActionsRunsCard,
+  isGithubActionsAvailable,
+} from '@backstage/plugin-github-actions';
+import {
+  EntityGithubPullRequestsContent,
+  EntityGithubPullRequestsOverviewCard,
+  isGithubPullRequestsAvailable,
+} from '@roadiehq/backstage-plugin-github-pull-requests';
+import {
+  EntityCircleCIContent,
+  isCircleCIAvailable,
+} from '@backstage/plugin-circleci';
 
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
 import { ReportIssue } from '@backstage/plugin-techdocs-module-addons-contrib';
-
+import {
+  CicdStatisticsApi,
+  EntityCicdStatisticsContent,
+  EntityPageCicdCharts,
+} from '@backstage/plugin-cicd-statistics';
 const techdocsContent = (
   <EntityTechdocsContent>
     <TechDocsAddons>
@@ -67,7 +81,11 @@ const techdocsContent = (
 const cicdContent = (
   // This is an example of how you can implement your company's logic in entity page.
   // You can for example enforce that all components of type 'service' should use GitHubActions
+
   <EntitySwitch>
+    <EntitySwitch.Case if={isCircleCIAvailable}>
+      <EntityCircleCIContent />
+    </EntitySwitch.Case>
     <EntitySwitch.Case if={isGithubActionsAvailable}>
       <EntityGithubActionsContent />
     </EntitySwitch.Case>
@@ -111,9 +129,27 @@ const entityWarningContent = (
   </>
 );
 
+const cicdCard = (
+  <EntitySwitch>
+    <EntitySwitch.Case if={isGithubActionsAvailable}>
+      <Grid item xs={12} sm={6}>
+        {/* <HomePageYourOpenPullRequestsCard query="" /> */}
+        <EntityRecentGithubActionsRunsCard limit={4} variant="gridItem" />
+      </Grid>
+    </EntitySwitch.Case>
+  </EntitySwitch>
+);
+
 const overviewContent = (
   <Grid container spacing={3} alignItems="stretch">
     {entityWarningContent}
+    <EntitySwitch>
+      <EntitySwitch.Case if={isGithubPullRequestsAvailable}>
+        <Grid item md={6}>
+          <EntityGithubPullRequestsOverviewCard />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch>
     <Grid item md={6}>
       <EntityAboutCard variant="gridItem" />
     </Grid>
@@ -124,6 +160,8 @@ const overviewContent = (
     <Grid item md={4} xs={12}>
       <EntityLinksCard />
     </Grid>
+    {cicdCard}
+    {<EntityCicdStatisticsContent />}
     <Grid item md={8} xs={12}>
       <EntityHasSubcomponentsCard variant="gridItem" />
     </Grid>
@@ -135,7 +173,9 @@ const serviceEntityPage = (
     <EntityLayout.Route path="/" title="Overview">
       {overviewContent}
     </EntityLayout.Route>
-
+    <EntityLayout.Route path="/github-actions" title="GitHub Actions">
+      <EntityGithubActionsContent />
+    </EntityLayout.Route>
     <EntityLayout.Route path="/ci-cd" title="CI/CD">
       {cicdContent}
     </EntityLayout.Route>
@@ -164,6 +204,14 @@ const serviceEntityPage = (
 
     <EntityLayout.Route path="/docs" title="Docs">
       {techdocsContent}
+    </EntityLayout.Route>
+    <EntityLayout.Route
+      path="/pull-requests"
+      title="Pull Requests"
+      // Uncomment the line below if you'd like to only show the tab on entities with the correct annotations already set
+      // if={isGithubPullRequestsAvailable}
+    >
+      <EntityGithubPullRequestsContent />
     </EntityLayout.Route>
   </EntityLayout>
 );

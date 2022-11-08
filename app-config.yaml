@@ -29,8 +29,17 @@ backend:
   # This is for local development only, it is not recommended to use this in production
   # The production database configuration is stored in app-config.production.yaml
   database:
-    client: better-sqlite3
-    connection: ':memory:'
+    # config options: https://node-postgres.com/api/client
+    client: pg
+    connection:
+      host: localhost
+      port: 5432
+      user: postgres
+      password: root
+      # https://node-postgres.com/features/ssl
+      #ssl: require # see https://www.postgresql.org/docs/current/libpq-ssl.html Table 33.1. SSL Mode Descriptions (e.g. require)
+      #ca: # if you have a CA file and want to verify it you can uncomment this section
+      #$file: <file-path>/ca/server.crt
   cache:
     store: memory
   # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
@@ -40,13 +49,18 @@ integrations:
     - host: github.com
       # This is a Personal Access Token or PAT from GitHub. You can find out how to generate this token, and more information
       # about setting up the GitHub integration here: https://backstage.io/docs/getting-started/configuration#setting-up-a-github-integration
-      token: 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
+      token: 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
     ### Example for how to add your GitHub Enterprise instance using the API:
     # - host: ghe.example.net
     #   apiBaseUrl: https://ghe.example.net/api/v3
     #   token: ${GHE_TOKEN}
 
 proxy:
+  '/circleci/api':
+    target: https://circleci.com/api/v1.1
+    headers:
+      Circle-Token: 1dc73561b0584a34af521ab50239ee7db20088c6
+
   '/test':
     target: 'https://example.com'
     changeOrigin: true
@@ -58,14 +72,18 @@ proxy:
 techdocs:
   builder: 'local' # Alternatives - 'external'
   generator:
-    runIn: 'docker' # Alternatives - 'local'
+    runIn: 'local' # Alternatives - 'local'
   publisher:
     type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
 
 auth:
   # see https://backstage.io/docs/auth/ to learn about auth providers
-  providers: {}
-
+  environment: development
+  providers:
+    github:
+      development:
+        clientId: baba9e7884dcab51d823
+        clientSecret: 9cf18c0b4fa7db69491ddae3e00513c6ff7e5256
 scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
 
@@ -86,6 +104,10 @@ catalog:
       rules:
         - allow: [Template]
 
+    - type: file
+      target: ../../examples/template/template-react.yaml
+      rules:
+        - allow: [Template]
     # Local example organizational data
     - type: file
       target: ../../examples/org.yaml

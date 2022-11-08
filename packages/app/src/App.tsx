@@ -26,16 +26,32 @@ import { apis } from './apis';
 import { entityPage } from './components/catalog/EntityPage';
 import { searchPage } from './components/search/SearchPage';
 import { Root } from './components/Root';
-
+import { HomepageCompositionRoot } from '@backstage/plugin-home';
+import { HomePage } from './components/home/HomePage';
 import { AlertDisplay, OAuthRequestDialog } from '@backstage/core-components';
 import { createApp } from '@backstage/app-defaults';
 import { FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
-
+import { githubAuthApiRef } from '@backstage/core-plugin-api';
+import { SignInPage } from '@backstage/core-components';
 const app = createApp({
   apis,
+  components: {
+    SignInPage: props => (
+      <SignInPage
+        {...props}
+        auto
+        provider={{
+          id: 'github-auth-provider',
+          title: 'GitHub',
+          message: 'Sign in using GitHub',
+          apiRef: githubAuthApiRef,
+        }}
+      />
+    ),
+  },
   bindRoutes({ bind }) {
     bind(catalogPlugin.externalRoutes, {
       createComponent: scaffolderPlugin.routes.root,
@@ -59,13 +75,23 @@ const AppRouter = app.getRouter();
 const routes = (
   <FlatRoutes>
     <Route path="/" element={<Navigate to="catalog" />} />
-    <Route path="/catalog" element={<CatalogIndexPage />} />
+    {/* <Route path="/homepage" element={}></Route> */}
+    <Route
+      path="/catalog"
+      element={
+        <>
+          {/* <HomePage /> */}
+          <CatalogIndexPage />
+        </>
+      }
+    />
     <Route
       path="/catalog/:namespace/:kind/:name"
       element={<CatalogEntityPage />}
     >
       {entityPage}
     </Route>
+
     <Route path="/docs" element={<TechDocsIndexPage />} />
     <Route
       path="/docs/:namespace/:kind/:name/*"
